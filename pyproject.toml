@@ -1,0 +1,18 @@
+[project]
+name = "helpful-assistant"
+version = "0.0.1"
+authors = [
+  { name="Whitelisted" },
+]
+description = "Allows LLMs to assist you with various tasks, all while being open-source!"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Whitelisted1/Helpful-Assistant"
+Issues = "https://github.com/Whitelisted1/Helpful-Assistant/issues"
