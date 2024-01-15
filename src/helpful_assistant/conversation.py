@@ -9,6 +9,7 @@ class Message:
 
 class Conversation:
     def __init__(self, name: str = "Conversation", history: List[Message] = []):
+        self.name = name
         self.history = history
 
     def add_to_history(self, message: Message):
