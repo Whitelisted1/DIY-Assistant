@@ -2,4 +2,6 @@ dist/
 env/
 build_tests/
 
+__pycache__/
+
 test.py
