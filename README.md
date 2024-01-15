@@ -1,2 +1,3 @@
-# Helpful-Assistant
- Allows LLMs to assist you with various tasks, all while being open-source!
+# DIY-Assistant
+ Make your own assistant through the use of LLMs
+ 
