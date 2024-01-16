@@ -10,4 +10,7 @@ class Action:
         self.name = name
         self.definition = definition
         self.task = task
-        self.category = category
+        self.category = None
+
+        if self.category is not None:
+            category.add_action(self)
