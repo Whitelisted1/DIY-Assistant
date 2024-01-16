@@ -1,3 +1,4 @@
-from .action import *
-from .module import *
-from .conversation import *
+from .action import Action
+from .module import Module
+from .conversation import Conversation, Message
+from .assistant import Assistant
