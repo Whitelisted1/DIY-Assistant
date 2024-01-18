@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING, Union, Generator, Optional
+from .stream import Stream
 
 if TYPE_CHECKING:
     from .assistant import Assistant
@@ -28,7 +29,7 @@ class Conversation:
     def _add_to_history(self, message: Message) -> None:
         self.history.append(message)
 
-    def generate(self, prompt: str = None, *args, **kwargs) -> Union[Generator, str]:
+    def generate(self, prompt: str = None, *args, **kwargs) -> Union[Stream, str]:
         if self.assistant is None:
             raise RuntimeError("No assistant object specified in this conversation.")
 
