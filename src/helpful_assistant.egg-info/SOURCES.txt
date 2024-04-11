@@ -1,0 +1,14 @@
+LICENSE
+README.md
+pyproject.toml
+src/helpful-assistant/__init__.py
+src/helpful_assistant/__init__.py
+src/helpful_assistant/action.py
+src/helpful_assistant/assistant.py
+src/helpful_assistant/conversation.py
+src/helpful_assistant/module.py
+src/helpful_assistant/stream.py
+src/helpful_assistant.egg-info/PKG-INFO
+src/helpful_assistant.egg-info/SOURCES.txt
+src/helpful_assistant.egg-info/dependency_links.txt
+src/helpful_assistant.egg-info/top_level.txt
