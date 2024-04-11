@@ -3,7 +3,8 @@ import helpful_assistant
 # local files
 import model, add_modules
 
-llm = model.model(r"C:\Users\dacoo\Offline Documents\llm_models\dolphin-2.6-mistral-7b.Q4_K_M.gguf")
+LLM_PATH = ""
+llm = model.model(LLM_PATH)
 
 app = helpful_assistant.Assistant(llm)
 add_modules.init(app)
