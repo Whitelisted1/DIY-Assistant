@@ -3,6 +3,7 @@ from typing import Union, List, TYPE_CHECKING, Optional, Any
 from .conversation import Conversation, Message
 from .module import Module
 from .stream import Stream
+from .events import EventManager
 
 if TYPE_CHECKING:
     from .action import Action
@@ -25,17 +26,48 @@ Here are your available modules:
 Do not talk about how you are unable to return real-time information. You must ONLY use modules and actions provided in this conversation. Do not assume there are actions available to you, unless provided in this conversation.'''
 
     def new_conversation(self, name: str = "Conversation", history: Optional[List[Message]] = None) -> Conversation:
+        """
+        Creates a new conversation
+
+        Parameters:
+        name (str, optional, defaults to "Conversation"): The name to the conversation.
+        history (list of messages, optional, defaults to None.): A list of messages in the current conversation.
+
+        Returns:
+        Conversation: A new conversation instance.
+        """
         c = Conversation(name=name, history=history, assistant=self)
         self.conversation_list.append(c)
         return c
 
     def add_module(self, module: Module) -> None:
+        """
+        Appends a module to the Assistant object.
+
+        Parameters:
+        module (Module): A Module object to append to the assistant's module list.
+        """
         self.module_list.append(module)
 
     def convert_modules_to_llm_readable(self) -> str:
+        """
+        Converts modules to the format given to the LLM
+        """
         return "\n".join([f"{module.name} ({module.definition})" for module in self.module_list])
 
     def generate(self, conversation: Conversation, stream: bool = False, allow_action_execution: bool = True) -> Union[Stream, str]:
+        """
+        Generates content from an LLM
+
+        Parameters:
+        conversation (Conversation): The conversation object to use when generating.
+        stream (bool, optional, defaults to False): Should the output be returned as a generator.
+        allow_action_execution (bool, defaults to True): Allow for actions to be executed by the LLM.
+
+        Returns:
+        Union[Stream, str]: A Stream object or a string depending on the stream parameter. The output from the LLM.
+        """
+
         if allow_action_execution:
             task_output, used_module, used_action = self._app_action_cycle(conversation)
 
@@ -48,6 +80,16 @@ Do not talk about how you are unable to return real-time information. You must O
         return output
 
     def _app_action_cycle(self, conversation: Conversation) -> List[Union[str, None], Union[Module, None], Union[Action, None]]:
+        """
+        Internal function which allows for the model to choose from the Modules and Actions
+
+        Parameters:
+        conversation (Conversation): The Conversation object in which to get data from
+
+        Returns:
+        List[Union[str, None], Union[Module, None], Union[Action, None]]: The output from the action run, the module used, and the action run.
+        """
+
         conversation_history = conversation.history.copy()
 
         user_query = conversation_history[-1].content.replace("`", "'") # not a great fix ¯\_(ツ)_/¯
@@ -71,7 +113,7 @@ Do not talk about how you are unable to return real-time information. You must O
         if active_module is None:
             return None, None, None
 
-        conversation_history.append(Message("user", f'''The "Weather" module has the following actions:\n```\n{m.convert_actions_to_llm_readable()}\n```\n\nRespond with ONLY the name of the action that you would like to execute. Any other text or tokens will break the application. If you do not wish to execute any of the given actions, respond with EXACTLY "null".'''))
+        conversation_history.append(Message("user", f'''The "{active_module.name}" module has the following actions:\n```\n{active_module.convert_actions_to_llm_readable()}\n```\n\nRespond with ONLY the name of the action that you would like to execute. Any other text or tokens will break the application. If you do not wish to execute any of the given actions, respond with EXACTLY "null".'''))
 
         output = self.llm.generate(conversation_history, stream=False)
         conversation_history.append(Message("assistant", output))
