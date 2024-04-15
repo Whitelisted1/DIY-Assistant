@@ -31,7 +31,7 @@ class model:
         )
 
     # forms a prompt. In this case the format is ChatML
-    def form_prompt(messages: List[helpful_assistant.Message], add_assistant_preprompt=True) -> str:
+    def form_prompt(self, messages: List[helpful_assistant.Message], add_assistant_preprompt=True) -> str:
         """ChatML format
         <|im_start|>system
         {system_message}<|im_end|>
