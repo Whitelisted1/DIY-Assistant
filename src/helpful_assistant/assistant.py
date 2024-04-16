@@ -14,6 +14,7 @@ class Assistant:
         self.llm = llm_class
         self.conversation_list: List[Conversation] = []
         self.module_list: List[Module] = []
+        self.event_manager = EventManager()
 
     def get_system_message(self) -> str:
         return f'''This application has different modules and actions. Modules contain actions, and are simply categorizers. Actions are able to be run and information.
