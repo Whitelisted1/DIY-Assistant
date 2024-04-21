@@ -29,16 +29,35 @@ class Conversation:
         self.discarded = False
 
     def get_by_role(self, role: str) -> List[Message]:
+        """
+        Fetches all messages by a specific role in the Conversation history.
+
+        Parameters:
+        role (str): the role to search for.
+
+        Returns:
+        List[Message]: A list of the messages by the specified role.
+        """
+
         out = []
         for message in self.history:
             if message.role == role:
                 out.append(message)
         return out
 
-    def _add_to_history(self, message: Message) -> None:
-        self.history.append(message)
-
     def generate(self, prompt: str = None, *args, **kwargs) -> Union[Stream, str]:
+        """
+        Generates text from the Large Language Model.
+
+        Parameters:
+        prompt (str): The prompt for the model. Appends to conversation history.
+        args (*args): Arguments to pass to the generate function.
+        kwargs (**kwargs) Keyword arguments to pass to the generate function.
+
+        Returns:
+        Union[Stream, str]: Generated text or text Stream.
+        """
+
         if self.assistant is None:
             raise RuntimeError("No assistant object specified in this conversation.")
 
@@ -46,7 +65,11 @@ class Conversation:
 
         return self.assistant.generate(conversation=self, *args, **kwargs)
 
-    def discard(self):
+    def discard(self) -> None:
+        """
+        Discards the conversation object. Main purpose is to trigger the "conversation_discarded" event.
+        """
+
         if self.assistant is not None:
             self.assistant.event_manager.trigger_event("conversation_discard", self)
 
@@ -54,3 +77,13 @@ class Conversation:
         self.assistant = None
         self.name = None
         self.discarded = True
+
+    def _add_to_history(self, message: Message) -> None:
+        """
+        Adds a message to Conversation history.
+
+        Parameters:
+        message (Message): The Message object to add to conversation history.
+        """
+
+        self.history.append(message)
