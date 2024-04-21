@@ -20,11 +20,20 @@ class Conversation:
         if history is None:
             history = []
             if assistant is not None:
+                assistant.event_manager.trigger_event("conversation_create", self)
                 history = [Message("system", assistant.get_system_message())]
 
         self.name = name
         self.history = history
         self.assistant = assistant
+        self.discarded = False
+
+    def get_by_role(self, role: str) -> List[Message]:
+        out = []
+        for message in self.history:
+            if message.role == role:
+                out.append(message)
+        return out
 
     def _add_to_history(self, message: Message) -> None:
         self.history.append(message)
@@ -36,3 +45,12 @@ class Conversation:
         self._add_to_history(Message("user", prompt))
 
         return self.assistant.generate(conversation=self, *args, **kwargs)
+
+    def discard(self):
+        if self.assistant is not None:
+            self.assistant.event_manager.trigger_event("conversation_discard", self)
+
+        self.history.clear()
+        self.assistant = None
+        self.name = None
+        self.discarded = True
