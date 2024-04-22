@@ -71,7 +71,7 @@ class Conversation:
         """
 
         if self.assistant is not None:
-            self.assistant.event_manager.trigger_event("conversation_discard", self)
+            self.assistant.remove_conversation(self)
 
         self.history.clear()
         self.assistant = None

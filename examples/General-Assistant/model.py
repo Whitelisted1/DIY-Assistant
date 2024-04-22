@@ -21,10 +21,10 @@ class model:
         ]
 
     # generate the output
-    def generate(self, messages: List[helpful_assistant.Message], *args, **kwargs):
+    def generate(self, conversation: helpful_assistant.Conversation, *args, **kwargs):
         # a high level function for simplicity
         return self.model(
-            self.form_prompt(messages),
+            self.form_prompt(conversation.history),
             stop=self.stop_sequences,
             *args,
             **kwargs

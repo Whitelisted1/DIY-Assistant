@@ -37,6 +37,18 @@ class Assistant:
         self.conversation_list.append(c)
         return c
 
+    def remove_conversation(self, conversation: Conversation) -> None:
+        """
+        Removes a conversation from the conversation list. Calls the conversation's `discard` function.
+
+        Parameters:
+        conversation (Conversation): The conversation to remove and discard.
+        """
+
+        self.event_manager.trigger_event("conversation_discard", conversation)
+        self.conversation_list.remove(conversation)
+
+
     def add_module(self, module: Module) -> None:
         """
         Appends a module to the Assistant object.
@@ -65,7 +77,7 @@ class Assistant:
         Union[Stream, str]: A Stream object or a string depending on the stream parameter. The output from the LLM.
         """
 
-        generation_conversation = Conversation(history=copy.deepcopy(conversation.history), assistant=self)
+        generation_conversation = self.new_conversation(history=copy.deepcopy(conversation.history))
 
         if allow_action_execution:
             # execute a task, if needed, and add that information to the covnersation
@@ -80,7 +92,7 @@ class Assistant:
             generation_conversation.discard()
 
         # Make a Stream object that adds the generation result to history once it has completed
-        output = Stream(self.llm.generate(generation_conversation.history, stream=stream), conversation_callback)
+        output = Stream(self.llm.generate(generation_conversation, stream=stream), conversation_callback)
 
         # return the Stream object
         return output
@@ -97,27 +109,19 @@ class Assistant:
         """
 
         # create a new conversation
-        action_conversation = Conversation(assistant=self)
-        action_conversation_history = action_conversation.history
-
-        action_conversation_history.append(Message("system", f'''This application has different modules and actions. Here are your available modules:
-
-{self.convert_modules_to_llm_readable()}
-
-You must only use the provided modules and actions in this conversation.'''))
-
+        action_conversation = self.new_conversation(history=[Message("system", f'This application has different modules and actions. Here are your available modules:\n\n{self.convert_modules_to_llm_readable()}\n\nYou must only use the provided modules and actions in this conversation.')])
 
         # split conversation history into newlines, excluding the system prompt
         user_message_history = "\n".join(f"{m.role}: {m.content}" for m in conversation.get_by_role("user"))
 
         # Make a prompt for the model to choose a module
         modules_prompt = f'''Given the user prompts, respond with the name of the module you want to learn more about. Only use modules relevant to the latest user message. Respond with "null" if none apply.\n\n{user_message_history}'''
-        action_conversation_history.append(Message("user", modules_prompt))
+        action_conversation.history.append(Message("user", modules_prompt))
 
 
         # Get the model output and append it to conversation_history
-        output: str = self.llm.generate(action_conversation_history, stream=False)
-        action_conversation_history.append(Message("assistant", output))
+        output: str = self.llm.generate(action_conversation, stream=False)
+        action_conversation.history.append(Message("assistant", output))
         output = output.strip().lower()
 
         logging.debug(f"Model chose Module: {output}")
@@ -140,11 +144,11 @@ You must only use the provided modules and actions in this conversation.'''))
             return None, None, None
 
         # Make the model choose an action
-        action_conversation_history.append(Message("user", f'''The "{active_module.name}" module has the following actions:\n```\n{active_module.convert_actions_to_llm_readable()}\n```\n\nRespond with ONLY the name of the action that you would like to execute. Any other text or tokens will break the application. If you do not wish to execute any of the given actions, respond with EXACTLY "null".'''))
+        action_conversation.history.append(Message("user", f'''The "{active_module.name}" module has the following actions:\n```\n{active_module.convert_actions_to_llm_readable()}\n```\n\nRespond with ONLY the name of the action that you would like to execute. Any other text or tokens will break the application. If you do not wish to execute any of the given actions, respond with EXACTLY "null".'''))
 
         # get model output and append it to conversation_history
-        output: str = self.llm.generate(action_conversation_history, stream=False)
-        action_conversation_history.append(Message("assistant", output))
+        output: str = self.llm.generate(action_conversation, stream=False)
+        action_conversation.history.append(Message("assistant", output))
         output = output.strip().lower()
 
         logging.debug(f"Model chose Action: {output}")
