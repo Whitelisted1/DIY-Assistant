@@ -20,13 +20,13 @@ class Conversation:
         if history is None:
             history = [] if assistant is None else [Message("system", assistant.get_system_message())]
 
-        if assistant is not None:
-            assistant.event_manager.trigger_event("conversation_create", self)
-
         self.name = name
         self.history = history
         self.assistant = assistant
         self.discarded = False
+
+        if assistant is not None:
+            assistant.event_manager.trigger_event("conversation_create", self)
 
     def get_by_role(self, role: str) -> List[Message]:
         """

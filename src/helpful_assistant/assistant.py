@@ -115,7 +115,7 @@ class Assistant:
         user_message_history = "\n".join(f"{m.role}: {m.content}" for m in conversation.get_by_role("user"))
 
         # Make a prompt for the model to choose a module
-        modules_prompt = f'''Given the user prompts, respond with the name of the module you want to learn more about. Only use modules relevant to the latest user message. Respond with "null" if none apply.\n\n{user_message_history}'''
+        modules_prompt = f'''Given the user prompts, respond with the name of the module you want to learn more about. Only use modules relevant to the latest user message. Respond with "null" if none apply.\n\n```\n{user_message_history}\n```'''
         action_conversation.history.append(Message("user", modules_prompt))
 
 
