@@ -18,10 +18,10 @@ class Message:
 class Conversation:
     def __init__(self, name: str = "Conversation", history: Optional[List[Message]] = None, assistant: Optional[Assistant] = None) -> None:
         if history is None:
-            history = []
-            if assistant is not None:
-                assistant.event_manager.trigger_event("conversation_create", self)
-                history = [Message("system", assistant.get_system_message())]
+            history = [] if assistant is None else [Message("system", assistant.get_system_message())]
+
+        if assistant is not None:
+            assistant.event_manager.trigger_event("conversation_create", self)
 
         self.name = name
         self.history = history
