@@ -29,6 +29,7 @@ class EventManager:
         event_name (str): Name of the event.
         event_data (object): The event data which will be passed to the listeners.
         """
+
         # if the event does not have any listeners then stop
         if event_name not in self.listeners:
             return
