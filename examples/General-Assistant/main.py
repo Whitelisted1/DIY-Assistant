@@ -20,5 +20,3 @@ while True:
     for resp in out:
         print(resp, end="", flush=True)
     print()
-
-# https://hf.co/chat/r/5JRvkmF
