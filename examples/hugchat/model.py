@@ -45,4 +45,4 @@ class model:
         if stream:
             return custom_iterator(output)
 
-        return output.get_final_text()
+        return output.wait_until_done()
