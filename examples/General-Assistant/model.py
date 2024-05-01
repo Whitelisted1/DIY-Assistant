@@ -42,7 +42,7 @@ class model:
 
         out_prompt = ""
         for message in messages:
-            out_prompt += f"<|im_start|>{message.role}\n{message.content}<|im_end|>\n"
+            out_prompt += f"<|im_start|>{message.role}\n{message.get_content(include_action_output=True)}<|im_end|>\n"
 
         if add_assistant_preprompt:
             out_prompt += "<|im_start|>assistant\n"
