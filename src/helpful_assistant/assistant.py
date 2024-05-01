@@ -13,8 +13,18 @@ if TYPE_CHECKING:
 
 
 class Assistant:
-    def __init__(self, llm_class: object, *args, **kwargs) -> None:
+    def __init__(self, llm_class: object, allow_conversation_history_modification: bool = False, *args, **kwargs) -> None:
+        """
+        Initializes a new Assistant instance.
+
+        Parameters:
+        llm_class (object): The class of the LLM which is used to generate model output.
+        allow_conversation_history_modification (bool, defaults to False): Allows or disallows the local modification of any Conversation's past messages. If using a back-and-forth API, set this to False.
+        """
+
         self.llm = llm_class
+        self.allow_conversation_history_modification = allow_conversation_history_modification
+
         self.conversation_list: List[Conversation] = []
         self.module_list: List[Module] = []
         self.event_manager = EventManager()
@@ -28,11 +38,12 @@ class Assistant:
 
         Parameters:
         name (str, optional, defaults to "Conversation"): The name to the conversation.
-        history (list of messages, optional, defaults to None.): A list of messages in the current conversation.
+        history (list of messages, optional, defaults to None): A list of messages in the current conversation.
 
         Returns:
         Conversation: A new conversation instance.
         """
+
         c = Conversation(name=name, history=history, assistant=self)
         self.conversation_list.append(c)
         return c
@@ -48,7 +59,6 @@ class Assistant:
         self.event_manager.trigger_event("conversation_discard", conversation)
         self.conversation_list.remove(conversation)
 
-
     def add_module(self, module: Module) -> None:
         """
         Appends a module to the Assistant object.
@@ -56,12 +66,14 @@ class Assistant:
         Parameters:
         module (Module): A Module object to append to the assistant's module list.
         """
+
         self.module_list.append(module)
 
     def convert_modules_to_llm_readable(self) -> str:
         """
         Converts modules to the format given to the LLM.
         """
+
         return "\n".join([f"{module.name} ({module.definition})" for module in self.module_list])
 
     def generate(self, conversation: Conversation, stream: bool = False, allow_action_execution: bool = True) -> Union[Stream, str]:
@@ -77,19 +89,27 @@ class Assistant:
         Union[Stream, str]: A Stream object or a string depending on the stream parameter. The output from the LLM.
         """
 
-        generation_conversation = self.new_conversation(history=copy.deepcopy(conversation.history))
+        # if we are allowing the modification of conversation histories, then make a copy which we will modify
+        # otherwise, just use the original conversation
+        if self.allow_conversation_history_modification:
+            generation_conversation = self.new_conversation(history=copy.deepcopy(conversation.history))
+        else:
+            generation_conversation = conversation
 
         if allow_action_execution:
             # execute a task, if needed, and add that information to the covnersation
             task_output, used_module, used_action = self._app_action_cycle(conversation)
 
-            # if the task actually ran append it to user input
+            # if the task actually ran then set it for the message
             if task_output is not None:
-                generation_conversation.history[-1].content += f"\n\n(An action was run. Action Output: ```{task_output}```. Use this output in your response, if applicable.)"
+                generation_conversation.history[-1].set_action_output(f"(An action was run. Action Output: ```{task_output}```. Use this output in your response, if applicable)")
 
         def conversation_callback(x):
             conversation._add_to_history(Message("assistant", "".join(x)))
-            generation_conversation.discard()
+
+            # don't discard this conversation if it is not a copy
+            if self.allow_conversation_history_modification:
+                generation_conversation.discard()
 
         # Make a Stream object that adds the generation result to history once it has completed
         output = Stream(self.llm.generate(generation_conversation, stream=stream), conversation_callback)
@@ -109,10 +129,10 @@ class Assistant:
         """
 
         # create a new conversation
-        action_conversation = self.new_conversation(history=[Message("system", f'This application has different modules and actions. Here are your available modules:\n\n{self.convert_modules_to_llm_readable()}\n\nYou must only use the provided modules and actions in this conversation.')])
+        action_conversation = self.new_conversation(history=[Message("system", f'This application has different modules and actions. Here are your available modules:\n```\n{self.convert_modules_to_llm_readable()}\n```\nYou must only use the provided modules and actions in this conversation.')])
 
-        # split conversation history into newlines, excluding the system prompt
-        user_message_history = "\n".join(f"{m.role}: {m.content}" for m in conversation.get_by_role("user"))
+        # split conversation history into newlines, excluding the action outputs
+        user_message_history = "\n".join(f"{m.role}: {m.get_content(include_action_output=False)}" for m in conversation.get_by_role("user"))
 
         # Make a prompt for the model to choose a module
         modules_prompt = f'''Given the user prompts, respond with the name of the module you want to learn more about. Only use modules relevant to the latest user message. Respond with "null" if none apply.\n\n```\n{user_message_history}\n```'''

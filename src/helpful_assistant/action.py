@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     from .module import Module
 
 
+# TODO: Allow for parameters to be passed to actions by the model
 class Action:
     def __init__(self, name: str, definition: str, task: Callable, category: Optional[Module] = None) -> None:
         self.name = name
