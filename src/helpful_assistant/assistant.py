@@ -30,7 +30,7 @@ class Assistant:
         self.event_manager = EventManager()
 
     def get_system_message(self) -> str:
-        return 'This application has different modules and actions. Modules contain actions, and are simply categorizers. Actions are able to be run and return information.\n\nDo not talk about how you are unable to return real-time information. You must ONLY use modules and actions provided in this conversation. Do not assume there are actions available to you, unless provided in this conversation.'
+        return 'This application has different modules and actions. Modules contain actions, and are simply categorizers. Actions are able to be run and return information.\n\nDo not talk about how you are unable to return real-time information. Avoid mentioning actions or modules unless directly mentioned by the user. Keep your answers concise.'
 
     def new_conversation(self, name: str = "Conversation", history: Optional[List[Message]] = None) -> Conversation:
         """
@@ -135,7 +135,7 @@ class Assistant:
         user_message_history = "\n".join(f"{m.role}: {m.get_content(include_action_output=False)}" for m in conversation.get_by_role("user"))
 
         # Make a prompt for the model to choose a module
-        modules_prompt = f'''Given the user prompts, respond with the name of the module you want to learn more about. Only use modules relevant to the latest user message. Respond with "null" if none apply.\n\n```\n{user_message_history}\n```'''
+        modules_prompt = f'''Given the user prompts, respond with the name of the module you want to learn more about. Only use modules relevant to the LATEST user message. Do not run an action that is not related to the MOST RECENT user message, shown at the bottom. Respond with EXACTLY "null" if none apply.\n\n```\n{user_message_history}\n```'''
         action_conversation.history.append(Message("user", modules_prompt))
 
 
