@@ -1,8 +1,14 @@
-from typing import Union, List
+from typing import Union, List, Generator
 import helpful_assistant
 
 # https://github.com/Soulter/hugging-chat-api
 from hugchat import hugchat, login
+
+
+def custom_iterator(iterator: hugchat.Message) -> Generator:
+    for m in iterator:
+        if m is None: continue
+        yield m["token"]
 
 
 class model:
@@ -36,12 +42,7 @@ class model:
     def generate(self, conversation: helpful_assistant.Conversation, stream=False):
         output = self._generate(conversation, stream)
 
-        print("out", output, type(output))
-
         if stream:
-            return output
-
-        print("MODEL OUTPUT: " + output.wait_until_done())
-        print(output.get_final_text())
+            return custom_iterator(output)
 
         return output.get_final_text()
