@@ -10,6 +10,13 @@ class Message:
     def __init__(self, role: str, content: str) -> None:
         self.role = role
         self.content = content
+        self.action_output: Union[str, None] = None
+
+    def set_action_output(self, action_output: str):
+        self.action_output = action_output
+
+    def get_content(self, include_action_output=True):
+        return self.content + (("\n\n" + self.action_output) if self.action_output is not None and include_action_output else "")
 
     def __str__(self) -> str:
         return self.content
